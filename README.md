@@ -72,6 +72,35 @@ a note field describing what I want changed. Use selector and outerHtml to find 
 element in src/, then follow the note.
 ```
 
+## MCP Server (optional)
+
+The package includes a stdio MCP server that watches `astroclick` and exposes it to MCP-aware tools. No SDK dependency — pure JSON-RPC over stdio.
+
+**Features:**
+- **Resource** `click-to-ai://clicks` — returns captured clicks, drains on read
+- **Channel** — pushes new clicks live into Claude Code sessions as they happen
+
+**Setup:**
+
+```bash
+claude mcp add --scope project click-to-ai npx astro-click-to-ai
+```
+
+Or add to `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "click-to-ai": {
+      "command": "npx",
+      "args": ["astro-click-to-ai"]
+    }
+  }
+}
+```
+
+With the MCP server running, you don't need `@astroclick` — clicks arrive automatically as channel events, and any MCP client can read the `click-to-ai://clicks` resource.
+
 ## What it does NOT do
 
 - **No `.astro` source mapping** — Astro doesn't annotate rendered DOM with source files. The captured selector and outerHTML are usually enough context for an AI to find the right component.
