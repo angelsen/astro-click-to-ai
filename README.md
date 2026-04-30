@@ -26,14 +26,12 @@ The `astroclick` output file is automatically added to `.gitignore` on first run
 
 ## Workflow
 
-1. Run `npm run dev`.
-2. Click the **Click to AI** icon in the Astro dev toolbar to toggle on.
-3. Hover over elements — a live highlight shows what you're about to select.
-4. Click to capture. Each element appears as a card in the side panel.
-5. Add a note to each item describing what you want changed.
-6. Remove individual items with the x button, or clear all.
-7. In your AI assistant: `@astroclick do these changes`.
-8. Toggle off — clicks pass through to the page normally.
+1. `npm run dev` — the toolbar shows a clipboard icon.
+2. Toggle the app on. A side panel opens and a hover highlight follows your cursor.
+3. Click any element. A note popup appears inline — type what you want changed, then press **Enter** to add it (or **Escape** to add without a note).
+4. Repeat for more elements. Edit notes in the side panel, remove items with x, or clear all.
+5. In your AI assistant: `@astroclick do these changes`.
+6. Toggle off — clicks pass through normally.
 
 ## Captured fields
 
