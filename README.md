@@ -53,6 +53,25 @@ type CapturedClick = {
 };
 ```
 
+## AI assistant prompt
+
+Copy and paste this into your AI assistant to set up the plugin:
+
+```
+Install astro-click-to-ai and add it to astro.config.mjs:
+
+npm install -D astro-click-to-ai
+
+Then add clickToAi() to the integrations array:
+
+import clickToAi from "astro-click-to-ai";
+export default defineConfig({ integrations: [clickToAi()] });
+
+When I reference @astroclick, read the file. Each entry has a selector, outerHtml, and
+a note field describing what I want changed. Use selector and outerHtml to find the
+element in src/, then follow the note.
+```
+
 ## What it does NOT do
 
 - **No `.astro` source mapping** — Astro doesn't annotate rendered DOM with source files. The captured selector and outerHTML are usually enough context for an AI to find the right component.
