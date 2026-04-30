@@ -271,7 +271,6 @@ h1 {
 `;
 
 class ClickToAiPanel extends HTMLElement {
-  shadowRoot: ShadowRoot;
   private list: ClickList;
   private onClear: () => void;
   private onRemove: (idx: number) => void;
@@ -288,8 +287,8 @@ class ClickToAiPanel extends HTMLElement {
     this.onClear = onClear;
     this.onRemove = onRemove;
     this.onNote = onNote;
-    this.shadowRoot = this.attachShadow({ mode: "open" });
-    this.shadowRoot.innerHTML = `
+    this.attachShadow({ mode: "open" });
+    this.shadowRoot!.innerHTML = `
       <style>${PANEL_STYLES}</style>
       <header>
         <h1>Click to AI</h1>
@@ -307,11 +306,11 @@ class ClickToAiPanel extends HTMLElement {
   }
 
   render() {
-    const badge = this.shadowRoot.querySelector(".count-badge")!;
+    const badge = this.shadowRoot!.querySelector(".count-badge")!;
     badge.textContent = String(this.list.length);
     badge.className = "count-badge" + (this.list.length === 0 ? " empty" : "");
 
-    const container = this.shadowRoot.getElementById("click-list")!;
+    const container = this.shadowRoot!.getElementById("click-list")!;
     container.innerHTML = "";
 
     if (this.list.length === 0) {
@@ -417,7 +416,117 @@ export default defineToolbarApp({
     highlight.appendChild(label);
     document.documentElement.appendChild(highlight);
 
+    // Inline note popup
+    const popup = document.createElement("div");
+    popup.style.cssText = [
+      "position: fixed",
+      "z-index: 2000000010",
+      "display: none",
+      "background: linear-gradient(0deg, #13151a, #13151a), linear-gradient(0deg, #343841, #343841)",
+      "border: 1px solid rgba(52, 56, 65, 1)",
+      "border-radius: 8px",
+      "padding: 8px 10px",
+      "box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.5)",
+      "font-family: ui-sans-serif, system-ui, -apple-system, sans-serif",
+      "min-width: 240px",
+      "max-width: 320px",
+    ].join("; ");
+
+    const popupLabel = document.createElement("div");
+    popupLabel.style.cssText =
+      "font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: rgba(183, 153, 255, 1); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;";
+
+    const popupInput = document.createElement("input");
+    popupInput.type = "text";
+    popupInput.placeholder = "Note (optional, Enter to add)";
+    popupInput.style.cssText = [
+      "box-sizing: border-box",
+      "width: 100%",
+      "padding: 5px 8px",
+      "background: rgba(255, 255, 255, 0.06)",
+      "border: 1px solid rgba(255, 255, 255, 0.1)",
+      "border-radius: 4px",
+      "color: #fff",
+      "font-size: 13px",
+      "font-family: inherit",
+      "outline: none",
+    ].join("; ");
+
+    popup.append(popupLabel, popupInput);
+    document.documentElement.appendChild(popup);
+
+    let pendingCapture: CapturedClick | null = null;
+    let popupOpen = false;
+
+    function positionPopup(rect: DOMRect) {
+      const pad = 8;
+      let top = rect.bottom + pad;
+      let left = rect.left;
+
+      // Flip above if too close to bottom
+      if (top + 60 > window.innerHeight) {
+        top = rect.top - 60 - pad;
+      }
+      // Keep within viewport horizontally
+      if (left + 320 > window.innerWidth) {
+        left = window.innerWidth - 320 - pad;
+      }
+      if (left < pad) left = pad;
+
+      popup.style.top = top + "px";
+      popup.style.left = left + "px";
+    }
+
+    function openPopup(entry: CapturedClick) {
+      pendingCapture = entry;
+      popupOpen = true;
+      let tag = entry.tag;
+      if (entry.id) tag += `#${entry.id}`;
+      else if (entry.classes.length) tag += `.${entry.classes[0]}`;
+      popupLabel.textContent = tag;
+      popupInput.value = "";
+      positionPopup(
+        new DOMRect(entry.rect.x, entry.rect.y, entry.rect.width, entry.rect.height),
+      );
+      popup.style.display = "block";
+      highlight.style.display = "none";
+      requestAnimationFrame(() => popupInput.focus());
+    }
+
+    function commitPopup(withNote: boolean) {
+      if (!pendingCapture) return;
+      if (withNote) pendingCapture.note = popupInput.value;
+      list.push(pendingCapture);
+      pendingCapture = null;
+      popupOpen = false;
+      popup.style.display = "none";
+      panel.render();
+      server.send(EVENT, list);
+    }
+
+    function cancelPopup() {
+      pendingCapture = null;
+      popupOpen = false;
+      popup.style.display = "none";
+    }
+
+    popupInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        commitPopup(true);
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        commitPopup(false);
+      }
+      e.stopPropagation();
+    });
+
+    // Prevent clicks inside popup from triggering capture
+    popup.addEventListener("click", (e) => e.stopPropagation());
+    popup.addEventListener("mousedown", (e) => e.stopPropagation());
+
     const onMouseMove = (e: MouseEvent) => {
+      if (popupOpen) return;
       const target = document.elementFromPoint(e.clientX, e.clientY);
       if (!target || target.closest("astro-dev-toolbar")) {
         highlight.style.display = "none";
@@ -437,20 +546,24 @@ export default defineToolbarApp({
     };
 
     const onClick = (e: MouseEvent) => {
+      if (popupOpen) {
+        // Click outside popup while it's open — commit without note
+        commitPopup(false);
+        return;
+      }
       const target = e.target;
       if (!(target instanceof Element)) return;
       if (target.closest("astro-dev-toolbar")) return;
       e.preventDefault();
       e.stopPropagation();
 
-      list.push(capture(target));
-      panel.render();
-      server.send(EVENT, list);
+      openPopup(capture(target));
     };
 
     app.onToggled(({ state }) => {
       panel.style.display = state ? "flex" : "none";
       highlight.style.display = "none";
+      cancelPopup();
 
       if (state) {
         document.addEventListener("click", onClick, { capture: true });
