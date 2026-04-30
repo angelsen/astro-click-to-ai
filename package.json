@@ -1,6 +1,6 @@
 {
   "name": "astro-click-to-ai",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Astro Dev Toolbar app: click elements to capture context with annotations for AI coding assistants.",
   "type": "module",
   "main": "./integration.ts",
