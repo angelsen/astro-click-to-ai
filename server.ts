@@ -3,8 +3,9 @@ import { readFileSync, writeFileSync, watch, existsSync } from "node:fs";
 import { createInterface } from "node:readline";
 import { resolve } from "node:path";
 
-const FILE = resolve(process.cwd(), "astroclick");
+const FILE = resolve(process.cwd(), ".astroclick");
 const URI = "click-to-ai://clicks";
+const MAX_ITEMS = 50;
 const INSTRUCTIONS =
   "Click-to-AI captures arrive as <channel source=\"click-to-ai\"> when the user clicks " +
   "elements in the Astro dev preview. Each entry has a selector, outerHtml, and note field. " +
@@ -129,7 +130,7 @@ rl.on("line", (line) => {
 // Watch directory for file creation + changes
 let debounce: ReturnType<typeof setTimeout>;
 const DIR = resolve(FILE, "..");
-const BASENAME = "astroclick";
+const BASENAME = ".astroclick";
 
 watch(DIR, (_, filename) => {
   if (filename !== BASENAME) return;
@@ -137,11 +138,13 @@ watch(DIR, (_, filename) => {
   debounce = setTimeout(() => {
     const raw = readClicks();
     try {
-      const list = JSON.parse(raw);
-      if (Array.isArray(list) && list.length > 0) {
-        pushChannel(raw, { count: String(list.length) });
-        try { writeFileSync(FILE, "[]", "utf8"); } catch {}
+      let list = JSON.parse(raw);
+      if (!Array.isArray(list) || list.length === 0) return;
+      if (list.length > MAX_ITEMS) {
+        list = list.slice(-MAX_ITEMS);
+        try { writeFileSync(FILE, JSON.stringify(list, null, 2), "utf8"); } catch {}
       }
+      pushChannel(JSON.stringify(list, null, 2), { count: String(list.length) });
     } catch {}
   }, 100);
 });
