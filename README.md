@@ -22,11 +22,7 @@ export default defineConfig({
 });
 ```
 
-Add to `.gitignore`:
-
-```
-/astroclick
-```
+The `astroclick` output file is automatically added to `.gitignore` on first run.
 
 ## Workflow
 
