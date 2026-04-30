@@ -547,8 +547,10 @@ export default defineToolbarApp({
 
     const onClick = (e: MouseEvent) => {
       if (popupOpen) {
-        // Click outside popup while it's open — commit without note
-        commitPopup(false);
+        // Popup is open — ignore clicks, user must Enter or Escape
+        e.preventDefault();
+        e.stopPropagation();
+        popupInput.focus();
         return;
       }
       const target = e.target;
