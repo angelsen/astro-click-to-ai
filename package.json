@@ -1,0 +1,37 @@
+{
+  "name": "astro-click-to-ai",
+  "version": "0.1.0",
+  "description": "Astro Dev Toolbar app: click elements to capture context with annotations for AI coding assistants.",
+  "type": "module",
+  "main": "./integration.ts",
+  "exports": {
+    ".": "./integration.ts",
+    "./app": "./app.ts"
+  },
+  "files": [
+    "integration.ts",
+    "app.ts",
+    "types.ts",
+    "README.md"
+  ],
+  "keywords": [
+    "astro",
+    "astro-integration",
+    "astro-component",
+    "dev-toolbar",
+    "ai",
+    "claude"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/angelsen/astro-click-to-ai"
+  },
+  "author": "Fredrik Angelsen <fredrikangelsen@gmail.com>",
+  "license": "MIT",
+  "peerDependencies": {
+    "astro": "^4.0.0 || ^5.0.0 || ^6.0.0"
+  },
+  "dependencies": {
+    "@iconify-json/lucide": "^1.0.0"
+  }
+}
