@@ -319,7 +319,7 @@ class ClickToAiPanel extends HTMLElement {
       empty.className = "empty-state";
       empty.innerHTML = `
         <p>Click any element on the page to capture it.</p>
-        <p class="hint">Captured elements are saved to <code>TODO</code></p>
+        <p class="hint">Captured elements are saved to <code>astroclick</code></p>
       `;
       container.appendChild(empty);
       return;

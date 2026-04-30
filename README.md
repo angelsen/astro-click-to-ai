@@ -1,8 +1,8 @@
 # astro-click-to-ai
 
-Astro Dev Toolbar app that captures clicked-element context as JSON for use with AI coding assistants.
+Astro Dev Toolbar app that captures clicked elements as a JSON list with annotations for AI coding assistants.
 
-When the toolbar app is active, clicking any element in the dev preview writes `last-click.json` at the project root. Reference it in Claude (or Cursor, Windsurf, etc.) as `@last-click.json` so the assistant knows exactly which element to edit.
+Toggle the app on, click elements to build up a list, add notes describing what you want changed, then reference `@astroclick` in your AI assistant.
 
 ## Install
 
@@ -25,18 +25,23 @@ export default defineConfig({
 Add to `.gitignore`:
 
 ```
-last-click.json
+/astroclick
 ```
 
 ## Workflow
 
 1. Run `npm run dev`.
-2. Click the **Click to AI** icon in the Astro dev toolbar to toggle on. Cursor turns into a crosshair.
-3. Click any element on the page. A highlight appears, the toolbar window confirms the capture, and `last-click.json` is written at the project root.
-4. In your AI assistant: `@last-click.json change this button's hover state to teal-300`.
-5. Toggle off — clicks pass through to the page normally.
+2. Click the **Click to AI** icon in the Astro dev toolbar to toggle on.
+3. Hover over elements — a live highlight shows what you're about to select.
+4. Click to capture. Each element appears as a card in the side panel.
+5. Add a note to each item describing what you want changed.
+6. Remove individual items with the x button, or clear all.
+7. In your AI assistant: `@astroclick do these changes`.
+8. Toggle off — clicks pass through to the page normally.
 
 ## Captured fields
+
+Each entry in `astroclick` contains:
 
 ```ts
 type CapturedClick = {
@@ -50,13 +55,13 @@ type CapturedClick = {
   text: string; // truncated textContent (200 chars)
   outerHtml: string; // truncated outerHTML (600 chars)
   rect: { x: number; y: number; width: number; height: number };
+  note: string; // your annotation
 };
 ```
 
 ## What it does NOT do
 
 - **No `.astro` source mapping** — Astro doesn't annotate rendered DOM with source files. The captured selector and outerHTML are usually enough context for an AI to find the right component.
-- **No history** — only the most recent click is preserved. Click again to refresh.
 - **No production output** — uses Astro's dev toolbar API; nothing ships in your build.
 
 ## License
