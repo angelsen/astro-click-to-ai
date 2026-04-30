@@ -12,7 +12,7 @@
     "integration.ts",
     "app.ts",
     "types.ts",
-    "server.ts",
+    "server.mjs",
     "README.md",
     "LICENSE"
   ],

@@ -37,7 +37,7 @@ export default function clickToAi(): AstroIntegration {
           mcp.mcpServers["click-to-ai"] = {
             type: "stdio",
             command: "node",
-            args: ["node_modules/astro-click-to-ai/server.ts"],
+            args: ["node_modules/astro-click-to-ai/server.mjs"],
           };
           writeFileSync(mcpPath, JSON.stringify(mcp, null, 2) + "\n", "utf8");
         } catch {}

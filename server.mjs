@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync, watch, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, watch } from "node:fs";
 import { createInterface } from "node:readline";
 import { resolve } from "node:path";
 
@@ -13,13 +13,13 @@ const INSTRUCTIONS =
   "Read the click-to-ai://clicks resource to get all pending captures (drains on read).";
 
 let initialized = false;
-const pending: object[] = [];
+const pending = [];
 
-function send(msg: object) {
+function send(msg) {
   process.stdout.write(JSON.stringify(msg) + "\n");
 }
 
-function pushChannel(content: string, meta?: Record<string, string>) {
+function pushChannel(content, meta) {
   const msg = {
     jsonrpc: "2.0",
     method: "notifications/claude/channel",
@@ -32,7 +32,7 @@ function pushChannel(content: string, meta?: Record<string, string>) {
   send(msg);
 }
 
-function readClicks(): string {
+function readClicks() {
   try {
     return readFileSync(FILE, "utf8");
   } catch {
@@ -40,7 +40,7 @@ function readClicks(): string {
   }
 }
 
-function handle(msg: { id?: number; method: string; params?: any }) {
+function handle(msg) {
   const { id, method } = msg;
 
   if (method === "initialize") {
@@ -49,7 +49,7 @@ function handle(msg: { id?: number; method: string; params?: any }) {
       id,
       result: {
         protocolVersion: "2024-11-05",
-        serverInfo: { name: "click-to-ai", version: "0.2.0" },
+        serverInfo: { name: "click-to-ai", version: "0.2.1" },
         capabilities: {
           resources: {},
           experimental: { "claude/channel": {} },
@@ -128,7 +128,7 @@ rl.on("line", (line) => {
 });
 
 // Watch directory for file creation + changes
-let debounce: ReturnType<typeof setTimeout>;
+let debounce;
 const DIR = resolve(FILE, "..");
 const BASENAME = ".astroclick";
 
